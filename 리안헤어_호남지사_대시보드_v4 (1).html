@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="리안 호남지사">
+<meta name="theme-color" content="#1A3C2E">
+<title>리안헤어 호남지사 운영 시스템 v4</title>
+<style>
+:root{
+  --g1:#1A3C2E;--g2:#2D5E46;--gl:#EAF4EE;
+  --gold:#C8A84B;--goldb:#FDF6E3;
+  --red:#C00000;--redb:#FFF0F0;
+  --yel:#9C5700;--yelb:#FFFBE6;
+  --blu:#1F497D;--blub:#EBF3FB;
+  --pur:#5B3FA0;--purb:#F5F0FF;
+  --bdr:#DDDDDD;--bg:#F2F5F3;--wh:#FFFFFF;
+  --txt:#222;--txt2:#666;--txt3:#aaa;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;background:var(--bg);color:var(--txt);font-size:13px;line-height:1.5;}
+
+/* HEADER */
+.hdr{background:var(--g1);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.hdr h1{font-size:17px;font-weight:700;letter-spacing:-.5px;}
+.hdr-sub{font-size:10px;color:var(--gold);margin-top:1px;}
+.hdr-right{font-size:11px;color:#aaa;text-align:right;}
+.hdr-right b{color:var(--gold);}
+.save-indicator{font-size:10px;color:#6fc98a;margin-top:2px;}
+
+/* NAV */
+.nav{background:var(--g2);display:flex;overflow-x:auto;padding:0 24px;}
+.nav::-webkit-scrollbar{height:2px;}
+.nbtn{background:none;border:none;color:#ccc;padding:9px 14px;cursor:pointer;font-size:12px;font-weight:600;border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s;}
+.nbtn:hover{color:#fff;}
+.nbtn.on{color:#fff;border-bottom-color:var(--gold);}
+
+/* SECTIONS */
+.sec{display:none;padding:16px 24px 40px;}
+.sec.on{display:block;}
+
+/* TITLES */
+.stitle{font-size:14px;font-weight:700;color:var(--g1);border-left:4px solid var(--gold);padding-left:10px;margin-bottom:14px;}
+
+/* KPI */
+.krow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.kcard{background:#fff;border-radius:10px;padding:12px 16px;flex:1;min-width:110px;box-shadow:0 1px 4px rgba(0,0,0,.07);border-top:3px solid var(--g2);cursor:pointer;transition:box-shadow .15s;}
+.kcard:hover{box-shadow:0 3px 10px rgba(0,0,0,.12);}
+.kcard.red{border-top-color:var(--red);}
+.kcard.gold{border-top-color:var(--gold);}
+.kcard.blu{border-top-color:var(--blu);}
+.kcard.pur{border-top-color:var(--pur);}
+.kcard.yel{border-top-color:var(--yel);}
+.klabel{font-size:10px;color:var(--txt3);font-weight:600;letter-spacing:.4px;text-transform:uppercase;}
+.kval{font-size:24px;font-weight:700;color:var(--g1);margin:3px 0 1px;}
+.kval.red{color:var(--red);}
+.kval.gold{color:var(--yel);}
+.kval.blu{color:var(--blu);}
+.ksub{font-size:10px;color:var(--txt3);}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+@media(max-width:700px){.g2,.g3{grid-template-columns:1fr;}}
+
+/* CARD */
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden;margin-bottom:14px;}
+.card-h{background:var(--g1);color:#fff;padding:9px 14px;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:space-between;}
+.card-h.gold{background:var(--gold);color:var(--g1);}
+.card-h.red{background:#8B0000;}
+.card-h.blu{background:var(--blu);}
+.card-h.pur{background:var(--pur);}
+.card-h.yel{background:var(--yel);color:#fff;}
+.card-b{padding:12px 14px;}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{background:var(--gl);color:var(--g1);padding:7px 8px;text-align:left;font-weight:700;border-bottom:2px solid var(--g2);white-space:nowrap;}
+.tbl td{padding:7px 8px;border-bottom:1px solid #F0F0F0;vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:#F8FBF9;}
+
+/* BADGES */
+.bd{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;white-space:nowrap;}
+.bd-g{background:var(--gl);color:var(--g2);}
+.bd-r{background:var(--redb);color:var(--red);}
+.bd-y{background:var(--yelb);color:var(--yel);}
+.bd-b{background:var(--blub);color:var(--blu);}
+.bd-p{background:var(--purb);color:var(--pur);}
+.bd-grey{background:#eee;color:#666;}
+
+/* ALERT */
+.alert{border-radius:8px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:12px;}
+.alert-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+.alert.red{background:var(--redb);border-left:4px solid var(--red);}
+.alert.yel{background:var(--yelb);border-left:4px solid #E6A817;}
+.alert.blu{background:var(--blub);border-left:4px solid var(--blu);}
+.alert.grn{background:var(--gl);border-left:4px solid var(--g2);}
+
+/* TASK ITEM */
+.task{background:#fff;border-radius:8px;padding:10px 14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.07);border-left:4px solid var(--bdr);display:flex;align-items:flex-start;gap:10px;cursor:pointer;transition:box-shadow .15s;}
+.task:hover{box-shadow:0 3px 8px rgba(0,0,0,.1);}
+.task.overdue{border-left-color:var(--red);}
+.task.today{border-left-color:var(--gold);}
+.task.pending{border-left-color:var(--blu);}
+.task-body{flex:1;}
+.task-title{font-weight:700;font-size:12px;margin-bottom:3px;}
+.task-meta{font-size:11px;color:var(--txt2);}
+
+/* FORM */
+.frow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:flex-start;}
+input[type=text],input[type=date],select,textarea{border:1px solid var(--bdr);border-radius:6px;padding:7px 10px;font-size:12px;font-family:inherit;background:#fff;color:var(--txt);}
+input[type=text]:focus,input[type=date]:focus,select:focus,textarea:focus{outline:none;border-color:var(--g2);box-shadow:0 0 0 2px rgba(45,94,70,.15);}
+textarea{resize:vertical;min-height:60px;}
+.btn{padding:7px 14px;border-radius:6px;border:none;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-g{background:var(--g2);color:#fff;} .btn-g:hover{background:var(--g1);}
+.btn-r{background:#8B0000;color:#fff;}
+.btn-b{background:var(--blu);color:#fff;}
+.btn-grey{background:#eee;color:#666;}
+.btn-sm{padding:4px 10px;font-size:11px;}
+.btn-gold{background:var(--gold);color:var(--g1);}
+
+/* MODAL OVERLAY */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;overflow-y:auto;padding:20px;}
+.modal-bg.on{display:flex;align-items:flex-start;justify-content:center;}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:680px;box-shadow:0 8px 32px rgba(0,0,0,.25);overflow:hidden;}
+.modal-h{background:var(--g1);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;}
+.modal-h h3{font-size:14px;font-weight:700;}
+.modal-close{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;}
+.modal-b{padding:18px;}
+.mrow{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;}
+.mlabel{min-width:90px;font-size:11px;font-weight:700;color:var(--g1);padding-top:8px;flex-shrink:0;}
+
+/* PIPELINE BAR */
+.pipe{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.pipe-lbl{width:72px;font-size:11px;font-weight:600;text-align:right;color:var(--txt2);}
+.pipe-wrap{flex:1;background:#eee;border-radius:20px;height:20px;overflow:hidden;}
+.pipe-bar{height:100%;border-radius:20px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:700;color:#fff;transition:width .5s ease;}
+.pipe-n{width:24px;font-size:12px;font-weight:700;color:var(--txt2);}
+
+/* PROCESS STEPS */
+.steps{display:flex;gap:0;margin-bottom:14px;}
+.step{flex:1;background:#fff;border-radius:8px;padding:10px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.07);position:relative;}
+.step::after{content:'▶';position:absolute;right:-10px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:13px;z-index:2;}
+.step:last-child::after{display:none;}
+.snum{width:22px;height:22px;border-radius:50%;background:var(--g1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin:0 auto 5px;}
+.steptitle{font-size:10px;font-weight:700;color:var(--g1);}
+
+/* PRINCIPLE */
+.principle{background:var(--goldb);border:2px solid var(--gold);border-radius:8px;padding:9px 14px;text-align:center;font-size:12px;font-weight:700;color:var(--g1);}
+
+/* STORE CARD (mobile) */
+.scard{background:#fff;border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.07);border-left:4px solid var(--g2);cursor:pointer;transition:box-shadow .15s;}
+.scard:hover{box-shadow:0 3px 10px rgba(0,0,0,.12);}
+.scard.red{border-left-color:var(--red);}
+.scard.yel{border-left-color:#E6A817;}
+
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--g1);color:#fff;padding:10px 18px;border-radius:8px;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.25);opacity:0;transition:opacity .3s;pointer-events:none;}
+
+/* FAB */
+.fab{position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;background:var(--g1);color:#fff;font-size:24px;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:300;display:flex;align-items:center;justify-content:center;transition:transform .15s;}
+.fab:hover{transform:scale(1.08);}
+
+/* SECTION: 백업 */
+.backup-box{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:12px;}
+
+.mb8{margin-bottom:8px;} .mb14{margin-bottom:14px;} .mb20{margin-bottom:20px;}
+.flex-end{display:flex;justify-content:flex-end;gap:8px;}
+.text-muted{color:var(--txt3);font-size:11px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <h1>🌿 리안헤어 호남지사 운영 시스템</h1>
+    <div class="hdr-sub">가맹점 성장 · 신규 확장 · 본사 협력 · 브랜드 위험관리</div>
+  </div>
+  <div class="hdr-right">
+    지사장 <b>조현</b> / 이음컴퍼니<br>
+    <span id="today-label"></span>
+    <div class="save-indicator" id="save-indicator"></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nbtn on"  onclick="go('today')">📌 오늘</button>
+  <button class="nbtn"     onclick="go('stores')">🏪 가맹점</button>
+  <button class="nbtn"     onclick="go('consult')">📓 상담기록</button>
+  <button class="nbtn"     onclick="go('actions')">✅ 업무·요청</button>
+  <button class="nbtn"     onclick="go('pipeline')">📈 신규 가맹</button>
+  <button class="nbtn"     onclick="go('calendar')">📅 일정·교육</button>
+  <button class="nbtn"     onclick="go('report')">📋 보고서</button>
+  <button class="nbtn"     onclick="go('settings')">⚙️ 설정·백업</button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════
+     오늘 — 첫 화면
+═══════════════════════════════════════════════ -->
+<div id="sec-today" class="sec on">
+  <div class="stitle" style="margin-top:16px;">📌 오늘의 지사 운영 현황</div>
+
+  <!-- KPI 자동계산 -->
+  <div class="krow">
+    <div class="kcard red" onclick="go('actions');filterByStatus('overdue')">
+      <div class="klabel">기한 초과</div>
+      <div class="kval red" id="k-overdue">—</div>
+      <div class="ksub">즉시 처리 필요</div>
+    </div>
+    <div class="kcard gold" onclick="go('actions');filterByStatus('today')">
+      <div class="klabel">오늘 기한</div>
+      <div class="kval gold" id="k-today">—</div>
+      <div class="ksub">오늘까지 처리</div>
+    </div>
+    <div class="kcard blu" onclick="go('actions');filterByStatus('pending')">
+      <div class="klabel">본사 답변 대기</div>
+      <div class="kval blu" id="k-pending">—</div>
+      <div class="ksub">재확인 필요</div>
+    </div>
+    <div class="kcard yel" onclick="go('stores')">
+      <div class="klabel">이번 주 연락</div>
+      <div class="kval" id="k-week" style="color:var(--yel);">—</div>
+      <div class="ksub">7일 이내 미접촉</div>
+    </div>
+    <div class="kcard" onclick="go('stores')">
+      <div class="klabel">장기 미접촉</div>
+      <div class="kval" id="k-long">—</div>
+      <div class="ksub">30일↑ 연락 없음</div>
+    </div>
+    <div class="kcard" onclick="go('pipeline')">
+      <div class="klabel">신규 가맹 후속</div>
+      <div class="kval" id="k-pipeline">—</div>
+      <div class="ksub">연락 필요 후보</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <!-- 오늘·기한초과 업무 -->
+    <div>
+      <div class="card">
+        <div class="card-h red">🚨 즉시 처리 — 기한 초과 · 오늘 기한</div>
+        <div class="card-b" id="today-urgent-list">
+          <p class="text-muted">없음</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h blu">⏳ 본사에 다시 확인할 일</div>
+        <div class="card-b" id="today-pending-list">
+          <p class="text-muted">없음</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 이번 주 연락 · 긴급 매장 -->
+    <div>
+      <div class="card">
+        <div class="card-h yel">📞 이번 주 연락할 원장</div>
+        <div class="card-b" id="today-contact-list">
+          <p class="text-muted">없음</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h red">⚠️ 집중 관리 매장</div>
+        <div class="card-b" id="today-issue-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-h gold">📅 다가오는 교육·행사</div>
+        <div class="card-b" id="today-events-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     가맹점 마스터
+═══════════════════════════════════════════════ -->
+<div id="sec-stores" class="sec">
+  <div class="stitle" style="margin-top:16px;">🏪 가맹점 마스터</div>
+
+  <!-- KPI 자동계산 -->
+  <div class="krow mb14">
+    <div class="kcard"><div class="klabel">총 관리 매장</div><div class="kval" id="sk-total">—</div><div class="ksub">계림점 제외</div></div>
+    <div class="kcard red"><div class="klabel">🔴 긴급</div><div class="kval red" id="sk-red">—</div></div>
+    <div class="kcard yel"><div class="klabel">🟡 주의</div><div class="kval" id="sk-yel" style="color:var(--yel);">—</div></div>
+    <div class="kcard"><div class="klabel">🟢 정상</div><div class="kval" id="sk-grn">—</div></div>
+    <div class="kcard blu"><div class="klabel">광주 리안</div><div class="kval blu" id="sk-gj">—</div></div>
+    <div class="kcard pur"><div class="klabel">전북 리안</div><div class="kval" id="sk-jb" style="color:var(--pur);">—</div></div>
+  </div>
+
+  <div class="frow mb14">
+    <input type="text" id="s-search" placeholder="매장명·원장명·전화번호" style="flex:1;max-width:220px;" oninput="renderStores()">
+    <select id="s-region" onchange="renderStores()"><option value="">전체 지역</option><option>광주</option><option>전북</option></select>
+    <select id="s-brand"  onchange="renderStores()"><option value="">전체 브랜드</option><option>리안</option><option>H스타일</option></select>
+    <select id="s-grade"  onchange="renderStores()"><option value="">전체 등급</option><option>🔴</option><option>🟡</option><option>🟢</option></select>
+    <button class="btn btn-b btn-sm" onclick="downloadCSV()">📥 CSV 다운로드</button>
+  </div>
+
+  <!-- 데스크톱 테이블 -->
+  <div class="card" style="overflow-x:auto;">
+    <table class="tbl" id="store-table">
+      <thead><tr>
+        <th>#</th><th>지역</th><th>브랜드</th><th>매장명</th><th>원장명</th>
+        <th>매장전화</th><th>원장휴대폰</th><th>주소</th>
+        <th>계약상태</th><th>CRM</th><th>현재 이슈</th><th>등급</th>
+      </tr></thead>
+      <tbody id="store-tbody"></tbody>
+    </table>
+  </div>
+  <p class="text-muted" style="margin-top:6px;">※ 출처: 전북_광주_가맹점리스트.xlsx | 매장명 클릭 시 상세화면 열림 | 계림점(지사장 직영)은 scope:제외로 별도 관리</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     상담기록
+═══════════════════════════════════════════════ -->
+<div id="sec-consult" class="sec">
+  <div class="stitle" style="margin-top:16px;">📓 점주 상담기록</div>
+  <div class="principle mb14" style="font-size:11px;">상담 후 바로 입력 → 업무(Action)가 자동 생성됩니다</div>
+
+  <div class="frow mb14">
+    <select id="c-filter-store" onchange="renderConsults()"><option value="">전체 매장</option></select>
+    <select id="c-filter-type" onchange="renderConsults()"><option value="">전체 분류</option><option>매출</option><option>직원</option><option>노무</option><option>마케팅</option><option>민원</option><option>본사</option><option>기타</option></select>
+    <button class="btn btn-g btn-sm" onclick="openConsultModal()">+ 상담 기록 등록</button>
+  </div>
+
+  <div id="consult-list"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     업무·요청 (Action Tracker)
+═══════════════════════════════════════════════ -->
+<div id="sec-actions" class="sec">
+  <div class="stitle" style="margin-top:16px;">✅ 업무·요청 추적</div>
+  <div class="principle mb14" style="font-size:11px;">무슨 문제 → 누가 처리 → 언제까지 → 처리 결과</div>
+
+  <div class="frow mb14">
+    <select id="a-filter-status" onchange="renderActions()">
+      <option value="">전체 상태</option>
+      <option value="기한초과">🚨 기한 초과</option>
+      <option value="진행중">🔄 진행중</option>
+      <option value="대기">⏳ 본사 대기</option>
+      <option value="예정">📋 예정</option>
+      <option value="완료">✅ 완료</option>
+    </select>
+    <select id="a-filter-type" onchange="renderActions()">
+      <option value="">전체 구분</option><option>원장요청</option><option>본사전달</option><option>내부과제</option>
+    </select>
+    <button class="btn btn-g btn-sm" onclick="openActionModal()">+ 업무 등록</button>
+    <button class="btn btn-grey btn-sm" onclick="if(confirm('기본 데이터로 초기화할까요?')){localStorage.removeItem('jisa_actions');initActions();renderActions();toast('초기화 완료');}">↺ 초기화</button>
+  </div>
+
+  <div id="action-list"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     신규 가맹 파이프라인
+═══════════════════════════════════════════════ -->
+<div id="sec-pipeline" class="sec">
+  <div class="stitle" style="margin-top:16px;">📈 신규 가맹 파이프라인</div>
+
+  <div class="krow mb14">
+    <div class="kcard gold"><div class="klabel">연 목표</div><div class="kval gold">4개</div><div class="ksub">독점권 유지 조건</div></div>
+    <div class="kcard"><div class="klabel">계약 완료</div><div class="kval" id="pk-done">—</div></div>
+    <div class="kcard blu"><div class="klabel">상담 진행</div><div class="kval blu" id="pk-active">—</div></div>
+    <div class="kcard pur"><div class="klabel">후보 검토</div><div class="kval" id="pk-cand" style="color:var(--pur);">—</div></div>
+  </div>
+
+  <div class="g2 mb14">
+    <div class="card">
+      <div class="card-h gold">단계별 현황</div>
+      <div class="card-b" id="pipe-chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-h">핵심 전략</div>
+      <div class="card-b" style="font-size:12px;">
+        <div style="background:var(--gl);border-radius:6px;padding:8px 10px;margin-bottom:6px;"><b style="color:var(--g1);">타깃</b> — 리뷰 적음·평점 3~4점·1인 운영·신규 1~2년차</div>
+        <div style="background:var(--goldb);border-radius:6px;padding:8px 10px;margin-bottom:6px;"><b style="color:#7A5A00;">거리 필터</b> — 기존 가맹점 2km 초과만 (Haversine)</div>
+        <div style="background:var(--blub);border-radius:6px;padding:8px 10px;margin-bottom:6px;"><b style="color:var(--blu);">블루오션</b> — 나주·목포·순천 (리안 공백)</div>
+        <div style="background:var(--redb);border-radius:6px;padding:8px 10px;"><b style="color:var(--red);">접근법</b> — "문제 해결 파트너"로 접근 → 가맹 전환</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">후보 현황</div>
+    <div class="card-b" style="padding:0;overflow-x:auto;">
+      <table class="tbl" id="pipe-table">
+        <thead><tr><th>매장명</th><th>지역</th><th>원장명</th><th>상태</th><th>최근 접촉</th><th>다음 액션</th><th>관리</th></tr></thead>
+        <tbody id="pipe-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     일정·교육
+═══════════════════════════════════════════════ -->
+<div id="sec-calendar" class="sec">
+  <div class="stitle" style="margin-top:16px;">📅 교육·이벤트 캘린더</div>
+  <div class="card" style="overflow-x:auto;">
+    <table class="tbl">
+      <thead><tr><th>날짜</th><th>구분</th><th>제목</th><th>강사·주관</th><th>장소</th><th>비용</th><th>상태</th><th>비고</th></tr></thead>
+      <tbody id="cal-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     보고서
+═══════════════════════════════════════════════ -->
+<div id="sec-report" class="sec">
+  <div class="stitle" style="margin-top:16px;">📋 월간 지사 리포트 — 자동 집계</div>
+  <div class="principle mb14" style="font-size:11px;">느낌이 아닌 숫자로 보고 | 사실과 개인 의견을 구분</div>
+
+  <div class="g2 mb14">
+    <div>
+      <div class="card"><div class="card-h">① 기본 정보</div><div class="card-b" id="rpt-basic"></div></div>
+      <div class="card"><div class="card-h">② 가맹점 현황 (자동)</div><div class="card-b" id="rpt-stores"></div></div>
+      <div class="card"><div class="card-h">③ 신규 가맹 (자동)</div><div class="card-b" id="rpt-pipeline"></div></div>
+      <div class="card"><div class="card-h">④ 업무 실적 (자동)</div><div class="card-b" id="rpt-actions"></div></div>
+    </div>
+    <div>
+      <div class="card"><div class="card-h">⑤ 이슈 매장 (자동)</div><div class="card-b" id="rpt-issues"></div></div>
+      <div class="card"><div class="card-h">⑥ 원장 공통 요청 <span style="font-weight:400;font-size:10px;">(직접 입력)</span></div>
+        <div class="card-b"><textarea id="rpt-requests" style="width:100%;min-height:80px;" placeholder="예: CRM 교육 요청 — 8개 매장에서 동일 요청"></textarea></div>
+      </div>
+      <div class="card"><div class="card-h">⑦ 본사 건의 사항 <span style="font-weight:400;font-size:10px;">(직접 입력)</span></div>
+        <div class="card-b"><textarea id="rpt-proposal" style="width:100%;min-height:80px;" placeholder="문제만 전달하지 말고 실행 가능한 대안까지 포함"></textarea></div>
+      </div>
+      <div class="card"><div class="card-h">⑧ 다음 달 계획 <span style="font-weight:400;font-size:10px;">(직접 입력)</span></div>
+        <div class="card-b"><textarea id="rpt-nextplan" style="width:100%;min-height:80px;" placeholder="교육·방문·신규 가맹·본사 협의 계획"></textarea></div>
+      </div>
+    </div>
+  </div>
+  <div class="flex-end"><button class="btn btn-g" onclick="window.print()">🖨️ 인쇄 / PDF</button></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     설정·백업
+═══════════════════════════════════════════════ -->
+<div id="sec-settings" class="sec">
+  <div class="stitle" style="margin-top:16px;">⚙️ 설정 · 데이터 백업</div>
+
+  <div class="card mb14">
+    <div class="card-h">💾 데이터 백업 · 복원</div>
+    <div class="card-b">
+      <p style="font-size:12px;color:var(--txt2);margin-bottom:12px;">JSON 백업 파일을 내보내두면 컴퓨터 고장이나 캐시 삭제 시에도 복구할 수 있습니다.</p>
+      <div class="frow">
+        <button class="btn btn-g" onclick="exportJSON()">📤 JSON 백업 내보내기</button>
+        <button class="btn btn-b" onclick="document.getElementById('import-file').click()">📥 JSON 백업 불러오기</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
+        <button class="btn btn-grey" onclick="downloadCSV()">📊 CSV 다운로드</button>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--txt3);" id="backup-status">마지막 백업: 없음</div>
+    </div>
+  </div>
+
+  <div class="card mb14">
+    <div class="card-h">🧭 지사장 운영 4대 원칙</div>
+    <div class="card-b">
+      <div class="g2" style="gap:8px;">
+        <div style="background:var(--gl);border-radius:8px;padding:10px 12px;"><b style="color:var(--g1);">① 매장 성장 책임자</b><p style="font-size:11px;color:#555;margin-top:3px;">매출·직원·고객·마케팅·교육 진단 및 개선</p></div>
+        <div style="background:var(--goldb);border-radius:8px;padding:10px 12px;"><b style="color:#7A5A00;">② 지역 영업 책임자</b><p style="font-size:11px;color:#555;margin-top:3px;">신규 가맹 후보 발굴 → 계약·오픈 관리 (연 4개)</p></div>
+        <div style="background:var(--blub);border-radius:8px;padding:10px 12px;"><b style="color:var(--blu);">③ 본사-현장 조정자</b><p style="font-size:11px;color:#555;margin-top:3px;">원장 요구와 본사 정책을 이해 가능한 언어로</p></div>
+        <div style="background:var(--redb);border-radius:8px;padding:10px 12px;"><b style="color:var(--red);">④ 브랜드 위험관리자</b><p style="font-size:11px;color:#555;margin-top:3px;">노무·민원·계약·운영·온라인 위험 미리 발견</p></div>
+      </div>
+      <div class="principle" style="margin-top:10px;font-size:11px;">"알아보겠습니다" → 반드시 결과 전달 | 느낌 아닌 숫자로 보고 | 존재하지 않는 본사 규정 언급 금지</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">📱 스마트폰 앱처럼 설치하기</div>
+    <div class="card-b" style="font-size:12px;">
+      <p class="mb8">① <a href="https://app.netlify.com/drop" target="_blank" style="color:var(--blu);">netlify.com/drop</a>에 이 HTML 파일을 드래그 앤 드롭 (무료, 1분)</p>
+      <p class="mb8">② 생성된 URL을 스마트폰 브라우저로 접속</p>
+      <p class="mb8">③ 브라우저 메뉴 → <b>홈 화면에 추가</b></p>
+      <p style="color:var(--txt3);">⚠️ 이 파일에는 원장 연락처·노무 정보 등 민감정보가 포함되어 있습니다. 반드시 비공개 URL 또는 비밀번호 보호 설정을 사용하세요.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODALS ═══════ -->
+
+<!-- 가맹점 상세 모달 -->
+<div class="modal-bg" id="modal-store">
+  <div class="modal">
+    <div class="modal-h">
+      <h3 id="ms-title">매장 상세</h3>
+      <button class="modal-close" onclick="closeModal('modal-store')">×</button>
+    </div>
+    <div class="modal-b" id="ms-body"></div>
+  </div>
+</div>
+
+<!-- 상담기록 등록 모달 -->
+<div class="modal-bg" id="modal-consult">
+  <div class="modal">
+    <div class="modal-h"><h3>📓 상담기록 등록</h3><button class="modal-close" onclick="closeModal('modal-consult')">×</button></div>
+    <div class="modal-b">
+      <div class="mrow"><span class="mlabel">매장 *</span><select id="c-store" style="flex:1;"><option value="">선택</option></select></div>
+      <div class="mrow"><span class="mlabel">상담일 *</span><input type="date" id="c-date" style="flex:1;"></div>
+      <div class="mrow"><span class="mlabel">상담 방식</span>
+        <select id="c-method" style="flex:1;"><option>전화</option><option>방문</option><option>카톡</option><option>대면</option></select>
+      </div>
+      <div class="mrow"><span class="mlabel">분류 *</span>
+        <select id="c-type" style="flex:1;"><option>매출</option><option>직원</option><option>노무</option><option>마케팅</option><option>민원</option><option>본사</option><option>기타</option></select>
+      </div>
+      <div class="mrow"><span class="mlabel">핵심 내용 *</span><textarea id="c-content" style="flex:1;" placeholder="상담 내용 요약"></textarea></div>
+      <div class="mrow"><span class="mlabel">원장 요청</span><textarea id="c-request" style="flex:1;" placeholder="원장이 요청한 내용"></textarea></div>
+      <div class="mrow"><span class="mlabel">다음 행동</span><input type="text" id="c-next" style="flex:1;" placeholder="다음에 해야 할 일"></div>
+      <div class="mrow"><span class="mlabel">처리 기한</span><input type="date" id="c-deadline" style="flex:1;"></div>
+      <div class="mrow"><span class="mlabel">본사 전달</span>
+        <select id="c-hq" style="flex:1;"><option value="N">불필요</option><option value="Y">필요</option><option value="D">전달 완료</option></select>
+      </div>
+      <div class="flex-end" style="margin-top:14px;">
+        <button class="btn btn-grey" onclick="closeModal('modal-consult')">취소</button>
+        <button class="btn btn-g" onclick="saveConsult()">저장 + 업무 자동생성</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 업무 등록 모달 -->
+<div class="modal-bg" id="modal-action">
+  <div class="modal">
+    <div class="modal-h"><h3 id="ma-title">업무·요청 등록</h3><button class="modal-close" onclick="closeModal('modal-action')">×</button></div>
+    <div class="modal-b">
+      <input type="hidden" id="ma-id">
+      <div class="mrow"><span class="mlabel">구분</span><select id="ma-type" style="flex:1;"><option>원장요청</option><option>본사전달</option><option>내부과제</option></select></div>
+      <div class="mrow"><span class="mlabel">대상 *</span><input type="text" id="ma-store" style="flex:1;" placeholder="매장명 또는 대상"></div>
+      <div class="mrow"><span class="mlabel">접수일</span><input type="date" id="ma-date" style="flex:1;"></div>
+      <div class="mrow"><span class="mlabel">내용 *</span><textarea id="ma-content" style="flex:1;" placeholder="요청·과제 내용"></textarea></div>
+      <div class="mrow"><span class="mlabel">처리 담당</span><input type="text" id="ma-who" style="flex:1;" placeholder="지사장 / 본사 / 노무사 등"></div>
+      <div class="mrow"><span class="mlabel">기한</span><input type="date" id="ma-deadline" style="flex:1;"></div>
+      <div class="mrow"><span class="mlabel">상태</span><select id="ma-status" style="flex:1;">
+        <option>📋 예정</option><option>🔄 진행중</option><option>⏳ 본사대기</option><option>✅ 완료</option>
+      </select></div>
+      <div class="mrow"><span class="mlabel">결과</span><textarea id="ma-result" style="flex:1;" placeholder="처리 결과 (완료 시 기입)"></textarea></div>
+      <div class="mrow"><span class="mlabel">중요도</span><select id="ma-priority" style="flex:1;"><option>상</option><option>중</option><option>하</option></select></div>
+      <div class="flex-end" style="margin-top:14px;">
+        <button class="btn btn-grey" onclick="closeModal('modal-action')">취소</button>
+        <button class="btn btn-g" onclick="saveAction()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- FAB -->
+<button class="fab" onclick="openFAB()" title="빠른 기록">＋</button>
+
+<script>
+// ════════════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════════════
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+
+const storeData = [
+  {region:"광주",brand:"리안",name:"운남점",owner:"김진희",phone:"050-71337-1315",mobile:"010-8680-1316",addr:"광주 광산구 임방울대로 216 (신가동) 201호",joined:"2025-02-01",status:"활성",crm:"핸즈OS",issue:"수습·교육비·3.3% 리스크",risk:"노무사 추가 검토 권장",lastContact:"2026-04-21",nextContact:"",grade:"🟡",scope:"관리"},
+  {region:"광주",brand:"리안",name:"화정점",owner:"문보라 / 정윤상",phone:"062-369-6663",mobile:"010-6438-7957",addr:"광주 서구 군분로139번길 17 (화정동)",joined:"",status:"활성",crm:"",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"광주",brand:"리안",name:"매곡점",owner:"최승복",phone:"062-574-0981",mobile:"010-9295-0981",addr:"광주 북구 서하로 117 (매곡동) 1·2층",joined:"",status:"활성",crm:"",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"광주",brand:"리안",name:"동림하나로점",owner:"정진아",phone:"062-511-2493",mobile:"010-3233-6190",addr:"광주 북구 동운로 127 (동림동) 2층",joined:"2023-11-01",status:"활성",crm:"핸즈OS",issue:"전 원장(칸 원장) 분쟁",risk:"분쟁 모니터링 지속",lastContact:"2026-04-30",nextContact:"",grade:"🔴",scope:"관리"},
+  {region:"광주",brand:"리안",name:"하나로마트수완점",owner:"박희웅",phone:"062-952-8322",mobile:"010-7928-1828",addr:"광주 광산구 임방울대로 261 (신가동) 2층",joined:"",status:"활성",crm:"핸즈OS",issue:"",risk:"",lastContact:"2026-04-30",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"광주",brand:"리안",name:"진월점",owner:"유미향",phone:"070-8899-3393",mobile:"010-5460-8794",addr:"광주 남구 광복마을길 49 (진월동) 2층",joined:"",status:"활성",crm:"핸즈OS",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"광주",brand:"리안",name:"봉선점",owner:"황유정",phone:"062-653-0501",mobile:"010-6546-5114",addr:"광주 남구 봉선로 173 (봉선동) 1층",joined:"",status:"활성",crm:"핸즈OS",issue:"",risk:"",lastContact:"2026-04-15",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"광주",brand:"리안",name:"일곡점",owner:"김다정",phone:"062-574-4592",mobile:"010-8119-8445",addr:"광주 북구 설죽로 505 (일곡동) 2층",joined:"",status:"활성",crm:"핸즈OS",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"광주",brand:"리안",name:"상무점",owner:"송소희",phone:"050-71430-1250",mobile:"010-9446-1074",addr:"광주 서구 상무평화로 78 (치평동) 1층",joined:"2025-12-29",status:"활성",crm:"핸즈OS",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"광주",brand:"리안",name:"하남2지구점",owner:"김현희",phone:"062-952-7660",mobile:"010-5117-6326",addr:"광주광역시 광산구 용아로379번길 2 2층",joined:"",status:"활성",crm:"",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"광주",brand:"리안",name:"용봉점",owner:"황정민",phone:"062-521-4012",mobile:"010-4613-4012",addr:"광주 북구 용봉택지로 51 (용봉동)",joined:"2026-06-01",status:"전환진행중",crm:"",issue:"직원 3인 계약 개편 진행중",risk:"프리랜서 근로자성 노무사 검토 필요",lastContact:"2026-06-14",nextContact:"2026-06-30",grade:"🟡",scope:"관리"},
+  {region:"광주",brand:"H스타일",name:"풍암1지구점",owner:"유용철",phone:"062-682-4343",mobile:"010-7794-5586",addr:"광주 서구 풍암1로 19 (풍암동) 1층 106호",joined:"",status:"활성",crm:"",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"광주",brand:"H스타일",name:"학동점",owner:"김민영",phone:"062-227-9997",mobile:"010-2375-1346",addr:"광주 동구 남문로 589 (용산동) 402동 203호",joined:"",status:"활성",crm:"",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"전북",brand:"리안",name:"익산모현점",owner:"김해정",phone:"063-856-9366",mobile:"010-2644-3542",addr:"전북 익산시 배산로 139 (모현동1가) 2층 204호",joined:"",status:"활성",crm:"",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"전북",brand:"리안",name:"전주에코시티점",owner:"김지정",phone:"063-255-5866",mobile:"010-3974-5866",addr:"전북 전주시 덕진구 세병1길 36 (송천동2가) 302호",joined:"",status:"활성",crm:"",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"전북",brand:"리안",name:"전주인후아중점",owner:"이희정",phone:"063-271-4477",mobile:"010-8885-9007",addr:"전북 전주시 덕진구 견훤로 247 (인후동1가) 1층 102호",joined:"",status:"활성",crm:"",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"전북",brand:"리안",name:"전주효자점",owner:"윤경진",phone:"063-236-1515",mobile:"010-2057-0805",addr:"전북 전주시 완산구 천잠로 196 (효자동2가) 2층",joined:"",status:"활성",crm:"",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"전북",brand:"리안",name:"남원도통점",owner:"김성숙",phone:"063-635-1009",mobile:"010-6604-5550",addr:"전북 남원시 용성로 241 (도통동) 2층",joined:"",status:"활성",crm:"",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"전북",brand:"리안",name:"완주봉동점",owner:"박장규",phone:"063-263-3542",mobile:"010-2644-3542",addr:"전북 완주군 봉동읍 둔산1로 108 (둔산리)",joined:"",status:"활성",crm:"",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"전북",brand:"리안",name:"정읍점",owner:"한종선",phone:"063-531-3997",mobile:"010-9269-3997",addr:"전북 정읍시 정인1길 75-10 (수성동)",joined:"",status:"활성",crm:"",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"전북",brand:"H스타일",name:"남원점",owner:"강순경",phone:"063-626-8810",mobile:"010-6404-7410",addr:"전북 남원시 춘향로 21 (도통동) 3층",joined:"",status:"활성",crm:"",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"전북",brand:"H스타일",name:"송천점",owner:"최인자",phone:"063-276-9848",mobile:"010-3659-9848",addr:"전북 전주시 덕진구 솔내8길 7 (송천동1가) 1층 105호",joined:"",status:"활성",crm:"",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"관리"},
+  {region:"광주",brand:"리안",name:"계림점",owner:"조현(지사장)",phone:"062-234-0005",mobile:"010-5147-9850",addr:"광주광역시 북구 무등로 286 1층",joined:"",status:"활성",crm:"핸즈OS",issue:"",risk:"",lastContact:"",nextContact:"",grade:"🟢",scope:"제외"},
+];
+
+const defaultActions = [
+  {id:"a1",date:"2026-05-05",type:"원장요청",store:"동림하나로점",content:"전 원장(칸 원장) 분쟁 — 영업방해·환불·집단민원 법적 대응",who:"지사장+변호사",deadline:"2026-05-10",status:"✅ 완료",result:"변호사 자문 기초자료 Word 작성·전달 완료",priority:"상"},
+  {id:"a2",date:"2026-04-21",type:"원장요청",store:"운남점",content:"수습 급여·교육비 공제·프리랜서 3.3% 노무 리스크 문의",who:"지사장→노무사",deadline:"2026-04-25",status:"✅ 완료",result:"카카오·공문·이메일 3종 전달 완료. 추가 검토 권장",priority:"상"},
+  {id:"a3",date:"2026-06-11",type:"원장요청",store:"용봉점",content:"직원 3인 정산·근태·계약 구조 개편 — 영업시간 미준수·정착지원금 의존",who:"지사장",deadline:"2026-06-30",status:"🔄 진행중",result:"종합안 발표자료 완성. 계약·부속약정 노무사 검토 필요",priority:"상"},
+  {id:"a4",date:"2026-06-15",type:"본사전달",store:"광주 전체",content:"CRM 데이터 분석 교육 도입 — 핸드SOS 출신 신규 전문가 활용 제안",who:"이승식 본부장",deadline:"2026-07-15",status:"⏳ 본사대기",result:"",priority:"상"},
+  {id:"a5",date:"2026-06-15",type:"본사전달",store:"광주 전체",content:"구글 지도 등록·인증 테스트 현황 공유 요청",who:"온라인마케팅팀",deadline:"2026-07-15",status:"⏳ 본사대기",result:"",priority:"중"},
+  {id:"a6",date:"2026-03-10",type:"본사전달",store:"광주 전체",content:"CEO 포럼 구인구직 플랫폼 홍보 — 호남 적용 가이드 요청",who:"박성철 부장",deadline:"2026-03-20",status:"✅ 완료",result:"단톡방 보고 완료",priority:"중"},
+  {id:"a7",date:"2026-01-30",type:"내부과제",store:"광주 전체",content:"네이버 플레이스 로직 변경 — 어뷰징 금지·올바른 답글 기준 긴급 공지",who:"지사장",deadline:"2026-01-31",status:"✅ 완료",result:"디자이너 공유용 문자·체크리스트 단톡방 배포",priority:"상"},
+  {id:"a8",date:"2026-06-15",type:"내부과제",store:"광주 전체",content:"하반기 AI 마케팅 교육 2회차 — 20명 모집 조건 충족 여부 확인",who:"지사장",deadline:"2026-08-31",status:"📋 예정",result:"",priority:"중"},
+];
+
+const defaultConsults = [
+  {id:"c1",store:"동림하나로점",owner:"정진아",date:"2026-04-30",method:"방문",type:"민원",content:"전 원장 분쟁 관련 현황 점검. 영업방해·환불 이슈 지속. 변호사 자문 기초자료 전달.",request:"법적 대응 지원",next:"분쟁 모니터링 지속",deadline:"2026-05-15",hq:"D"},
+  {id:"c2",store:"운남점",owner:"김진희",date:"2026-04-21",method:"전화",type:"노무",content:"수습 3개월 90% 지급 여부, 교육비 공제 가능 여부, 프리랜서 계약 리스크 문의.",request:"노무 리스크 정리 자료 요청",next:"노무사 추가 심층 검토 권장",deadline:"2026-05-01",hq:"D"},
+  {id:"c3",store:"용봉점",owner:"황정민",date:"2026-06-14",method:"방문",type:"직원",content:"직원 3인 정산율·근태·계약 구조 개편 종합안 브리핑. 실장 55/56% 구간제, 남자 A 2027.1 프로테이지 전환, 여자 B 에이스 육성 방향 협의.",request:"계약서·부속약정 문서화",next:"노무사 검토 후 계약서 최종화",deadline:"2026-06-30",hq:"N"},
+];
+
+const pipelineData = [
+  {id:"p1",name:"금호동 르네헤어",region:"광주 금호동",owner:"백지혜",status:"상담 진행중",lastContact:"2026-03-09",next:"후속 상담 일정 잡기",note:"아웃바운드 1호 미팅 완료"},
+  {id:"p2",name:"목포 상동 후보",region:"목포 상동",owner:"—",status:"후보 검토",lastContact:"",next:"방문 일정 잡기",note:"PNG 필드 지도 완성"},
+  {id:"p3",name:"목포 석현동 후보",region:"목포 석현동",owner:"—",status:"후보 검토",lastContact:"",next:"방문 일정 잡기",note:""},
+  {id:"p4",name:"나주 후보",region:"나주",owner:"—",status:"발굴 필요",lastContact:"",next:"지역 탐색",note:"전남 블루오션"},
+  {id:"p5",name:"용봉점",region:"광주 용봉동",owner:"황정민",status:"계약 완료",lastContact:"2026-06-14",next:"직원 상담·계약 마무리",note:"브랜드 전환 진행중"},
+];
+
+const calData=[
+  {date:"2023-12-05",type:"교육",title:"미용실 온라인마케팅 교육",teacher:"",place:"",fee:"",status:"완료",note:"단톡방 이력"},
+  {date:"2026-01-13",type:"본사",title:"서울 본사 CEO 경영 컨퍼런스",teacher:"리안 본사",place:"서울 리안 본사 3층",fee:"",status:"완료",note:"2026 경영전략 발표"},
+  {date:"2026-01-20",type:"교육+친목",title:"AI 뷰티 마케팅 실전 + 유상준 회장 오찬",teacher:"백주연 교수",place:"이음컴퍼니 3층",fee:"리안 10만",status:"완료",note:"일반15만→리안10만(지사 5만 지원)"},
+  {date:"2026-03-10",type:"본사",title:"서울 본사 CEO 포럼",teacher:"리안 본사",place:"서울",fee:"",status:"완료",note:"구인구직·인력 수급 논의"},
+  {date:"2026-03-17",type:"교육",title:"노무 리스크 예방 특강",teacher:"구서필 대표 노무사",place:"이음컴퍼니 3층",fee:"5만",status:"완료",note:"사전질문 20개 준비. 호평"},
+  {date:"2026-03-24",type:"교육",title:"리안 트렌드 커트 & 매출 세미나",teacher:"최준 팀장",place:"이음컴퍼니 3층",fee:"가발비만",status:"완료",note:"기술교육+간담회"},
+  {date:"2026-04-15",type:"친목",title:"광주 점주 저녁 식사 모임",teacher:"지사장 주선",place:"성산제줏간 광주상무",fee:"",status:"완료",note:"정진아 원장 첫 참석"},
+  {date:"2026-05-11",type:"본사",title:"리안헤어 런칭 25주년 제주 워크숍",teacher:"리안 본사",place:"제주도",fee:"무료",status:"완료",note:"동림 진에어 09:15 / 나머지 제주항공 09:45"},
+  {date:"2026-08-01",type:"교육",title:"AI 마케팅 교육 2회차 (예정)",teacher:"백주연 교수",place:"이음컴퍼니 3층",fee:"리안 10만",status:"예정",note:"20명 모집 조건. 시기 미확정",dateStatus:"날짜미확정"},
+  {date:"2026-09-01",type:"교육",title:"노무교육 2회차 (예정)",teacher:"구서필 노무사",place:"이음컴퍼니 3층",fee:"5만",status:"예정",note:"상반기 호평. 시기 미확정",dateStatus:"날짜미확정"},
+  {date:"2026-09-01",type:"교육",title:"CRM 데이터 활용 교육 (검토중)",teacher:"본사 CRM전문가",place:"미정",fee:"미정",status:"검토중",note:"이승식 본부장 확인 필요",dateStatus:"날짜미확정"},
+];
+
+// ── localStorage ───────────────────────────────
+function ls(key,def){try{const v=localStorage.getItem(key);return v?JSON.parse(v):def;}catch{return def;}}
+function lsSet(key,val){try{localStorage.setItem(key,JSON.stringify(val));indicatorSaved();}catch(e){toast('저장 오류: '+e.message);}}
+
+let actions  = ls('jisa_actions', defaultActions);
+let consults = ls('jisa_consults', defaultConsults);
+
+function initActions(){ actions=[...defaultActions]; lsSet('jisa_actions',actions); }
+
+function indicatorSaved(){
+  const el=document.getElementById('save-indicator');
+  el.textContent='💾 저장됨 '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  if(ls('jisa_lastBackup',''))
+    document.getElementById('backup-status').textContent='마지막 백업: '+ls('jisa_lastBackup','없음');
+}
+
+// ── DATE HELPERS ───────────────────────────────
+function parseDate(s){if(!s)return null;const d=new Date(s);return isNaN(d)?null:d;}
+function daysAgo(dateStr){
+  const d=parseDate(dateStr);if(!d)return null;
+  return Math.floor((TODAY-d)/86400000);
+}
+function daysUntil(dateStr){
+  const d=parseDate(dateStr);if(!d)return null;
+  d.setHours(0,0,0,0);
+  return Math.floor((d-TODAY)/86400000);
+}
+function fmtDate(s){
+  const d=parseDate(s);if(!d)return s||'—';
+  return d.toLocaleDateString('ko-KR',{month:'long',day:'numeric'});
+}
+function isOverdue(deadline,status){
+  if(!deadline||status==='✅ 완료')return false;
+  const du=daysUntil(deadline);return du!==null&&du<0;
+}
+function isToday(deadline,status){
+  if(!deadline||status==='✅ 완료')return false;
+  const du=daysUntil(deadline);return du===0;
+}
+
+// ── MANAGED STORES ─────────────────────────────
+const managed = storeData.filter(s=>s.scope!=='제외');
+
+// ════════════════════════════════════════════════
+// RENDER TODAY
+// ════════════════════════════════════════════════
+function renderToday(){
+  const overdue  = actions.filter(a=>isOverdue(a.deadline,a.status));
+  const todayAct = actions.filter(a=>isToday(a.deadline,a.status));
+  const pending  = actions.filter(a=>a.status==='⏳ 본사대기');
+  const weekContact = managed.filter(s=>{
+    const da=daysAgo(s.lastContact);return da!==null&&da>=7&&da<30;
+  });
+  const longNo = managed.filter(s=>{
+    const da=daysAgo(s.lastContact);return da===null||da>=30;
+  });
+  const pipeNeed = pipelineData.filter(p=>p.status==='상담 진행중'||p.status==='후보 검토');
+
+  document.getElementById('k-overdue').textContent=overdue.length;
+  document.getElementById('k-today').textContent=todayAct.length;
+  document.getElementById('k-pending').textContent=pending.length;
+  document.getElementById('k-week').textContent=weekContact.length;
+  document.getElementById('k-long').textContent=longNo.length;
+  document.getElementById('k-pipeline').textContent=pipeNeed.length;
+
+  // 기한초과·오늘
+  const urgent=[...overdue,...todayAct];
+  document.getElementById('today-urgent-list').innerHTML=urgent.length?
+    urgent.map(a=>`<div class="task ${isOverdue(a.deadline,a.status)?'overdue':'today'}" onclick="openActionEdit('${a.id}')">
+      <div class="task-body">
+        <div class="task-title">${a.store} — ${a.content.slice(0,40)}${a.content.length>40?'…':''}</div>
+        <div class="task-meta">${a.type} | 기한: ${fmtDate(a.deadline)} | 담당: ${a.who||'—'}
+          ${isOverdue(a.deadline,a.status)?'<span class="bd bd-r" style="margin-left:4px;">기한초과</span>':'<span class="bd bd-y" style="margin-left:4px;">오늘기한</span>'}</div>
+      </div></div>`).join(''):'<p class="text-muted">없음 ✅</p>';
+
+  // 본사 대기
+  document.getElementById('today-pending-list').innerHTML=pending.length?
+    pending.map(a=>`<div class="task pending" onclick="openActionEdit('${a.id}')">
+      <div class="task-body">
+        <div class="task-title">${a.store} — ${a.content.slice(0,40)}…</div>
+        <div class="task-meta">담당: ${a.who||'—'} | 기한: ${fmtDate(a.deadline)}</div>
+      </div></div>`).join(''):'<p class="text-muted">없음 ✅</p>';
+
+  // 이번 주 연락
+  document.getElementById('today-contact-list').innerHTML=weekContact.length?
+    weekContact.map(s=>`<div class="task" onclick="openStoreModal(${storeData.indexOf(s)})">
+      <div class="task-body">
+        <div class="task-title">${s.name} — ${s.owner}</div>
+        <div class="task-meta">마지막 연락: ${fmtDate(s.lastContact)} (${daysAgo(s.lastContact)}일 전) | ${s.mobile}</div>
+      </div></div>`).join(''):'<p class="text-muted">없음 ✅</p>';
+
+  // 긴급 매장
+  const issues=managed.filter(s=>s.grade!=='🟢');
+  document.getElementById('today-issue-list').innerHTML=issues.map(s=>`
+    <div class="alert ${s.grade==='🔴'?'red':'yel'}" onclick="openStoreModal(${storeData.indexOf(s)})" style="cursor:pointer;">
+      <span class="alert-icon">${s.grade}</span>
+      <div><b>${s.name}</b> — ${s.owner}<br><span style="font-size:11px;">${s.issue||'이슈 확인 필요'}</span></div>
+    </div>`).join('');
+
+  // 다가오는 교육
+  const upCal=calData.filter(e=>e.status!=='완료'&&parseDate(e.date)>=TODAY).slice(0,3);
+  document.getElementById('today-events-list').innerHTML=upCal.length?
+    upCal.map(e=>`<div style="padding:7px 0;border-bottom:1px solid #f0f0f0;">
+      <b style="font-size:12px;">${e.title}</b><br>
+      <span style="font-size:11px;color:var(--txt2);">${e.dateStatus==='날짜미확정'?'시기 미확정':fmtDate(e.date)} | ${e.place||'미정'}</span>
+    </div>`).join(''):'<p class="text-muted">예정된 교육·행사 없음</p>';
+}
+
+// ════════════════════════════════════════════════
+// RENDER STORES
+// ════════════════════════════════════════════════
+function renderStoreKPI(){
+  const m=managed;
+  document.getElementById('sk-total').textContent=m.length;
+  document.getElementById('sk-red').textContent=m.filter(s=>s.grade==='🔴').length;
+  document.getElementById('sk-yel').textContent=m.filter(s=>s.grade==='🟡').length;
+  document.getElementById('sk-grn').textContent=m.filter(s=>s.grade==='🟢').length;
+  document.getElementById('sk-gj').textContent=m.filter(s=>s.region==='광주'&&s.brand==='리안').length;
+  document.getElementById('sk-jb').textContent=m.filter(s=>s.region==='전북'&&s.brand==='리안').length;
+}
+
+function renderStores(){
+  const q=(document.getElementById('s-search').value||'').toLowerCase();
+  const reg=document.getElementById('s-region').value;
+  const brd=document.getElementById('s-brand').value;
+  const grd=document.getElementById('s-grade').value;
+
+  const filtered=storeData.filter(s=>
+    s.scope!=='제외'&&
+    (!q||(s.name+s.owner+s.phone+s.mobile).toLowerCase().includes(q))&&
+    (!reg||s.region===reg)&&(!brd||s.brand===brd)&&(!grd||s.grade===grd)
+  );
+
+  const brandBd=b=>b==='H스타일'?'<span class="bd bd-p">H스타일</span>':'<span class="bd bd-g">리안</span>';
+  const regBd  =r=>r==='전북'?'<span class="bd bd-b">전북</span>':'<span class="bd bd-g">광주</span>';
+  const stBd   =s=>s==='전환진행중'?'<span class="bd bd-y">전환진행중</span>':'<span class="bd bd-g">활성</span>';
+  const grdCell=g=>g==='🔴'?`<span style="color:var(--red);font-weight:700;">${g}</span>`:g==='🟡'?`<span style="color:var(--yel);font-weight:700;">${g}</span>`:`<span style="color:#2D8A50;">${g}</span>`;
+
+  document.getElementById('store-tbody').innerHTML=filtered.map((s,i)=>`
+    <tr>
+      <td style="color:var(--txt3);text-align:center;">${i+1}</td>
+      <td>${regBd(s.region)}</td>
+      <td>${brandBd(s.brand)}</td>
+      <td style="cursor:pointer;color:var(--g1);font-weight:700;text-decoration:underline;" onclick="openStoreModal(${storeData.indexOf(s)})">${s.name}</td>
+      <td>${s.owner}</td>
+      <td style="white-space:nowrap;font-size:11px;">${s.phone}</td>
+      <td style="white-space:nowrap;font-size:11px;color:var(--txt2);">${s.mobile}</td>
+      <td style="font-size:11px;color:var(--txt2);max-width:180px;">${s.addr}</td>
+      <td>${stBd(s.status)}</td>
+      <td style="font-size:11px;">${s.crm||'—'}</td>
+      <td style="max-width:160px;font-size:11px;">${s.issue||'—'}</td>
+      <td style="text-align:center;">${grdCell(s.grade)}</td>
+    </tr>`).join('');
+}
+
+// ════════════════════════════════════════════════
+// STORE MODAL (상세화면)
+// ════════════════════════════════════════════════
+function openStoreModal(idx){
+  const s=storeData[idx];
+  const relActions=actions.filter(a=>a.store&&a.store.includes(s.name.replace('점',''))||a.store===s.name);
+  const relConsults=consults.filter(c=>c.store===s.name);
+  const da=daysAgo(s.lastContact);
+  const gradeColor=s.grade==='🔴'?'var(--red)':s.grade==='🟡'?'var(--yel)':'var(--g2)';
+
+  document.getElementById('ms-title').textContent=`🏪 ${s.name} — ${s.owner}`;
+  document.getElementById('ms-body').innerHTML=`
+    <div class="g2" style="gap:10px;margin-bottom:14px;">
+      <div style="background:var(--gl);border-radius:8px;padding:12px;">
+        <div style="font-size:11px;color:var(--txt3);margin-bottom:6px;font-weight:700;">기본 정보</div>
+        <div style="font-size:12px;line-height:2;">
+          <b>지역·브랜드:</b> ${s.region} / ${s.brand}<br>
+          <b>매장 전화:</b> <a href="tel:${s.phone}" style="color:var(--blu);">${s.phone}</a><br>
+          <b>원장 휴대폰:</b> <a href="tel:${s.mobile}" style="color:var(--blu);">${s.mobile}</a><br>
+          <b>주소:</b> ${s.addr}<br>
+          <b>CRM:</b> ${s.crm||'—'} &nbsp; <b>계약상태:</b> ${s.status}
+        </div>
+      </div>
+      <div style="background:var(--redb);border-radius:8px;padding:12px;border:1px solid ${gradeColor};">
+        <div style="font-size:11px;color:var(--txt3);margin-bottom:6px;font-weight:700;">운영 현황</div>
+        <div style="font-size:20px;margin-bottom:4px;">${s.grade} <span style="font-size:12px;color:${gradeColor};font-weight:700;">${s.grade==='🔴'?'긴급':s.grade==='🟡'?'집중관리':'정상'}</span></div>
+        <div style="font-size:12px;line-height:1.8;color:var(--txt2);">
+          <b>현재 이슈:</b> ${s.issue||'없음'}<br>
+          <b>노무 리스크:</b> ${s.risk||'없음'}<br>
+          <b>마지막 연락:</b> ${fmtDate(s.lastContact)} ${da!==null?`(${da}일 전)`:''}<br>
+          <b>다음 연락:</b> ${fmtDate(s.nextContact)||'미정'}
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:10px;">
+      <div style="font-size:11px;font-weight:700;color:var(--g1);margin-bottom:6px;">📋 최근 상담 기록</div>
+      ${relConsults.length?relConsults.slice(0,3).map(c=>`
+        <div style="background:#f9f9f9;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:11px;">
+          <b>${fmtDate(c.date)}</b> (${c.method}) — [${c.type}] ${c.content.slice(0,60)}…
+          <br><span style="color:var(--txt3);">다음 행동: ${c.next||'—'}</span>
+        </div>`).join(''):'<p class="text-muted">상담 기록 없음</p>'}
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--g1);margin-bottom:6px;">✅ 진행 중인 업무</div>
+      ${relActions.filter(a=>a.status!=='✅ 완료').length?
+        relActions.filter(a=>a.status!=='✅ 완료').map(a=>`
+          <div style="background:#f9f9f9;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:11px;">
+            <b>${a.content.slice(0,50)}…</b> <span class="bd bd-y">${a.status}</span><br>
+            <span style="color:var(--txt3);">기한: ${fmtDate(a.deadline)} | 담당: ${a.who||'—'}</span>
+          </div>`).join(''):'<p class="text-muted">진행 중인 업무 없음</p>'}
+    </div>
+
+    <div class="frow" style="gap:8px;flex-wrap:wrap;">
+      <a href="tel:${s.mobile}" class="btn btn-g btn-sm">📞 전화 걸기</a>
+      <a href="https://map.naver.com/search?query=${encodeURIComponent(s.addr)}" target="_blank" class="btn btn-b btn-sm">🗺️ 지도 열기</a>
+      <button class="btn btn-gold btn-sm" onclick="closeModal('modal-store');openConsultModal('${s.name}')">📓 상담 등록</button>
+      <button class="btn btn-grey btn-sm" onclick="closeModal('modal-store');openActionModal('','${s.name}')">✅ 업무 등록</button>
+    </div>
+  `;
+  document.getElementById('modal-store').classList.add('on');
+}
+
+// ════════════════════════════════════════════════
+// RENDER CONSULTS
+// ════════════════════════════════════════════════
+function renderConsults(){
+  const fs=document.getElementById('c-filter-store').value;
+  const ft=document.getElementById('c-filter-type').value;
+  const filtered=consults.filter(c=>(!fs||c.store===fs)&&(!ft||c.type===ft))
+    .sort((a,b)=>b.date.localeCompare(a.date));
+
+  const typeBd={매출:'bd-g',직원:'bd-b',노무:'bd-r',마케팅:'bd-p',민원:'bd-r',본사:'bd-b',기타:'bd-grey'};
+  const hqBd={Y:'<span class="bd bd-r">본사 전달 필요</span>',D:'<span class="bd bd-g">전달 완료</span>',N:''};
+
+  document.getElementById('consult-list').innerHTML=filtered.length?
+    filtered.map(c=>`
+      <div class="card mb8" style="cursor:default;">
+        <div class="card-h" style="justify-content:space-between;">
+          <span>${c.store} — ${c.owner} <span class="bd bd-grey" style="margin-left:4px;">${c.method}</span> <span class="bd ${typeBd[c.type]||'bd-grey'}" style="margin-left:4px;">${c.type}</span></span>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span style="font-size:11px;font-weight:400;">${fmtDate(c.date)}</span>
+            ${hqBd[c.hq]||''}
+            <button class="btn btn-grey btn-sm" onclick="deleteConsult('${c.id}')">삭제</button>
+          </div>
+        </div>
+        <div class="card-b" style="font-size:12px;">
+          <p style="margin-bottom:6px;">${c.content}</p>
+          ${c.request?`<p style="color:var(--txt2);"><b>원장 요청:</b> ${c.request}</p>`:''}
+          ${c.next?`<p style="color:var(--blu);margin-top:4px;"><b>다음 행동:</b> ${c.next} ${c.deadline?'(기한: '+fmtDate(c.deadline)+')':''}</p>`:''}
+        </div>
+      </div>`).join(''):'<p class="text-muted">상담 기록이 없습니다.</p>';
+}
+
+function openConsultModal(storeName=''){
+  const sel=document.getElementById('c-store');
+  sel.innerHTML='<option value="">선택</option>'+
+    storeData.filter(s=>s.scope!=='제외').map(s=>`<option${s.name===storeName?' selected':''}>${s.name}</option>`).join('');
+  document.getElementById('c-date').value=new Date().toISOString().split('T')[0];
+  ['c-content','c-request','c-next'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-deadline').value='';
+  document.getElementById('modal-consult').classList.add('on');
+}
+
+function saveConsult(){
+  const store=document.getElementById('c-store').value;
+  const content=document.getElementById('c-content').value.trim();
+  if(!store||!content){alert('매장과 내용은 필수입니다.');return;}
+  const storeObj=storeData.find(s=>s.name===store)||{};
+  const next=document.getElementById('c-next').value.trim();
+  const deadline=document.getElementById('c-deadline').value;
+  const hq=document.getElementById('c-hq').value;
+  const newC={
+    id:'c'+Date.now(),store,owner:storeObj.owner||'',
+    date:document.getElementById('c-date').value,
+    method:document.getElementById('c-method').value,
+    type:document.getElementById('c-type').value,
+    content,request:document.getElementById('c-request').value,
+    next,deadline,hq
+  };
+  consults.unshift(newC);
+  lsSet('jisa_consults',consults);
+
+  // 업무 자동생성
+  if(next){
+    const newA={
+      id:'a'+Date.now(),
+      date:new Date().toISOString().split('T')[0],
+      type:'원장요청',store,
+      content:`[상담 자동생성] ${next}`,
+      who:'지사장',deadline,
+      status:'📋 예정',result:'',priority:'중'
+    };
+    actions.unshift(newA);
+    lsSet('jisa_actions',actions);
+    toast(`✅ 상담 저장 + 업무 자동생성: "${next.slice(0,20)}"`);
+  } else { toast('✅ 상담 기록 저장 완료'); }
+
+  closeModal('modal-consult');
+  renderConsults();
+  renderActions();
+  renderToday();
+}
+
+function deleteConsult(id){
+  if(!confirm('이 상담 기록을 삭제할까요?'))return;
+  consults=consults.filter(c=>c.id!==id);
+  lsSet('jisa_consults',consults);
+  renderConsults();
+  toast('삭제 완료');
+}
+
+// ════════════════════════════════════════════════
+// RENDER ACTIONS
+// ════════════════════════════════════════════════
+function renderActions(){
+  const fs=document.getElementById('a-filter-status').value;
+  const ft=document.getElementById('a-filter-type').value;
+
+  let filtered=actions.filter(a=>{
+    if(ft&&a.type!==ft)return false;
+    if(!fs)return true;
+    if(fs==='기한초과')return isOverdue(a.deadline,a.status);
+    if(fs==='진행중') return a.status==='🔄 진행중';
+    if(fs==='대기')   return a.status==='⏳ 본사대기';
+    if(fs==='예정')   return a.status==='📋 예정';
+    if(fs==='완료')   return a.status==='✅ 완료';
+    return true;
+  }).sort((a,b)=>{
+    const o={'기한초과':0,'✅ 완료':99};
+    const ga=isOverdue(a.deadline,a.status)?0:a.status==='✅ 완료'?99:1;
+    const gb=isOverdue(b.deadline,b.status)?0:b.status==='✅ 완료'?99:1;
+    return ga-gb||(a.deadline||'').localeCompare(b.deadline||'');
+  });
+
+  const stBd=s=>({
+    '✅ 완료':'<span class="bd bd-g">✅ 완료</span>',
+    '🔄 진행중':'<span class="bd bd-b">🔄 진행중</span>',
+    '⏳ 본사대기':'<span class="bd bd-y">⏳ 본사대기</span>',
+    '📋 예정':'<span class="bd bd-p">📋 예정</span>',
+  }[s]||`<span class="bd bd-grey">${s}</span>`);
+  const prBd=p=>p==='상'?'<span class="bd bd-r">상</span>':p==='중'?'<span class="bd bd-y">중</span>':'<span class="bd bd-grey">하</span>';
+
+  document.getElementById('action-list').innerHTML=`
+    <div style="overflow-x:auto;">
+    <table class="tbl">
+      <thead><tr><th>접수일</th><th>구분</th><th>대상</th><th>내용</th><th>담당</th><th>기한</th><th>상태</th><th>중요</th><th>결과</th><th>관리</th></tr></thead>
+      <tbody>${filtered.map(a=>{
+        const over=isOverdue(a.deadline,a.status);
+        return `<tr style="${over?'background:#FFF5F5;':''}">
+          <td style="white-space:nowrap;font-size:11px;">${a.date}</td>
+          <td><span class="bd bd-grey">${a.type}</span></td>
+          <td style="font-size:11px;white-space:nowrap;">${a.store}</td>
+          <td style="max-width:200px;font-size:11px;">${a.content}${over?'<span class="bd bd-r" style="margin-left:4px;">기한초과</span>':''}</td>
+          <td style="font-size:11px;white-space:nowrap;">${a.who||'—'}</td>
+          <td style="font-size:11px;white-space:nowrap;${over?'color:var(--red);font-weight:700;':''}">${fmtDate(a.deadline)}</td>
+          <td>${stBd(a.status)}</td>
+          <td>${prBd(a.priority)}</td>
+          <td style="max-width:160px;font-size:11px;color:var(--txt2);">${a.result||'—'}</td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-grey btn-sm" onclick="openActionEdit('${a.id}')">수정</button>
+            <button class="btn btn-r btn-sm" style="margin-left:3px;" onclick="deleteAction('${a.id}')">삭제</button>
+          </td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+
+function filterByStatus(type){
+  const sel=document.getElementById('a-filter-status');
+  if(type==='overdue') sel.value='기한초과';
+  else if(type==='today') sel.value='예정';
+  else if(type==='pending') sel.value='대기';
+  renderActions();
+}
+
+function openActionModal(id='',storePrefill=''){
+  document.getElementById('ma-id').value=id;
+  document.getElementById('ma-title').textContent=id?'업무·요청 수정':'업무·요청 등록';
+  if(id){
+    const a=actions.find(x=>x.id===id);
+    if(a){
+      ['type','store','content','who','result','priority','status'].forEach(f=>{
+        const el=document.getElementById('ma-'+f);
+        if(el) el.value=a[f]||'';
+      });
+      document.getElementById('ma-date').value=a.date||'';
+      document.getElementById('ma-deadline').value=a.deadline||'';
+    }
+  } else {
+    ['ma-store','ma-content','ma-who','ma-result'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('ma-store').value=storePrefill;
+    document.getElementById('ma-date').value=new Date().toISOString().split('T')[0];
+    document.getElementById('ma-deadline').value='';
+    document.getElementById('ma-status').value='📋 예정';
+    document.getElementById('ma-priority').value='중';
+  }
+  document.getElementById('modal-action').classList.add('on');
+}
+
+function openActionEdit(id){ openActionModal(id); }
+
+function saveAction(){
+  const id=document.getElementById('ma-id').value;
+  const content=document.getElementById('ma-content').value.trim();
+  const store=document.getElementById('ma-store').value.trim();
+  if(!content||!store){alert('대상과 내용은 필수입니다.');return;}
+  const obj={
+    id:id||('a'+Date.now()),
+    type:document.getElementById('ma-type').value,
+    store,content,
+    date:document.getElementById('ma-date').value,
+    who:document.getElementById('ma-who').value,
+    deadline:document.getElementById('ma-deadline').value,
+    status:document.getElementById('ma-status').value,
+    result:document.getElementById('ma-result').value,
+    priority:document.getElementById('ma-priority').value,
+  };
+  if(id){actions=actions.map(a=>a.id===id?obj:a);}
+  else{actions.unshift(obj);}
+  lsSet('jisa_actions',actions);
+  closeModal('modal-action');
+  renderActions();
+  renderToday();
+  toast(id?'✅ 수정 완료':'✅ 업무 등록 완료');
+}
+
+function deleteAction(id){
+  if(!confirm('이 업무를 삭제할까요?'))return;
+  actions=actions.filter(a=>a.id!==id);
+  lsSet('jisa_actions',actions);
+  renderActions();
+  renderToday();
+  toast('삭제 완료');
+}
+
+// ════════════════════════════════════════════════
+// RENDER PIPELINE
+// ════════════════════════════════════════════════
+function renderPipeline(){
+  const done  =pipelineData.filter(p=>p.status==='계약 완료').length;
+  const active=pipelineData.filter(p=>p.status==='상담 진행중').length;
+  const cand  =pipelineData.filter(p=>p.status==='후보 검토'||p.status==='발굴 필요').length;
+  document.getElementById('pk-done').textContent=done;
+  document.getElementById('pk-active').textContent=active;
+  document.getElementById('pk-cand').textContent=cand;
+
+  const stages=[
+    {label:'후보 발굴',count:pipelineData.length,color:'#5B9E7A'},
+    {label:'접촉·상담',count:active,color:var_('--gold')},
+    {label:'계약 진행',count:done,color:'#1A3C2E'},
+    {label:'오픈 완료',count:0,color:'#aaa'},
+  ];
+  document.getElementById('pipe-chart').innerHTML=stages.map(s=>`
+    <div class="pipe">
+      <span class="pipe-lbl">${s.label}</span>
+      <div class="pipe-wrap"><div class="pipe-bar" style="width:${s.count?Math.max(10,s.count/pipelineData.length*100)+'%':'5%'};background:${s.color};">${s.count||''}</div></div>
+      <span class="pipe-n">${s.count}</span>
+    </div>`).join('');
+
+  const stBd=s=>({
+    '계약 완료':'<span class="bd bd-g">✅ 계약완료</span>',
+    '상담 진행중':'<span class="bd bd-b">🔄 상담진행</span>',
+    '후보 검토':'<span class="bd bd-p">🔍 후보검토</span>',
+    '발굴 필요':'<span class="bd bd-grey">발굴필요</span>',
+  }[s]||`<span class="bd bd-grey">${s}</span>`);
+
+  document.getElementById('pipe-tbody').innerHTML=pipelineData.map(p=>`
+    <tr>
+      <td><b>${p.name}</b></td><td>${p.region}</td><td>${p.owner}</td>
+      <td>${stBd(p.status)}</td>
+      <td style="font-size:11px;">${fmtDate(p.lastContact)||'—'}</td>
+      <td style="font-size:11px;">${p.next}</td>
+      <td><button class="btn btn-g btn-sm" onclick="openActionModal('','${p.name}')">업무등록</button></td>
+    </tr>`).join('');
+}
+
+function var_(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+// ════════════════════════════════════════════════
+// RENDER CALENDAR
+// ════════════════════════════════════════════════
+function renderCalendar(){
+  const tc={교육:'#EAF4EE',본사:'#DBE9F8','교육+친목':'#D4EBC4',이벤트:'#FEF0CD',친목:'#F5E6FF',검토중:'#F5F5F5'};
+  const stBd=s=>s==='완료'?'<span class="bd bd-g">완료</span>':s==='진행중'?'<span class="bd bd-b">진행중</span>':s==='예정'?'<span class="bd bd-p">예정</span>':'<span class="bd bd-grey">'+s+'</span>';
+  document.getElementById('cal-tbody').innerHTML=calData.map(e=>`
+    <tr style="background:${tc[e.type]||'#fff'}">
+      <td style="white-space:nowrap;font-size:11px;">${e.dateStatus==='날짜미확정'?'<span class="bd bd-y">시기미확정</span>':fmtDate(e.date)}</td>
+      <td><b style="font-size:11px;">${e.type}</b></td>
+      <td><b>${e.title}</b></td>
+      <td style="font-size:11px;">${e.teacher}</td>
+      <td style="font-size:11px;">${e.place}</td>
+      <td style="font-size:11px;">${e.fee}</td>
+      <td>${stBd(e.status)}</td>
+      <td style="font-size:11px;color:var(--txt2);">${e.note}</td>
+    </tr>`).join('');
+}
+
+// ════════════════════════════════════════════════
+// RENDER REPORT (자동집계)
+// ════════════════════════════════════════════════
+function renderReport(){
+  const m=managed;
+  const red=m.filter(s=>s.grade==='🔴');
+  const yel=m.filter(s=>s.grade==='🟡');
+  const over=actions.filter(a=>isOverdue(a.deadline,a.status));
+  const done=actions.filter(a=>a.status==='✅ 완료');
+  const pend=actions.filter(a=>a.status==='⏳ 본사대기');
+  const pDone=pipelineData.filter(p=>p.status==='계약 완료');
+
+  function kv(k,v,alert=''){
+    return `<div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;">
+      <span style="min-width:120px;font-size:11px;font-weight:700;color:var(--g1);background:var(--gl);padding:3px 8px;border-radius:4px;flex-shrink:0;">${k}</span>
+      <span style="font-size:11px;color:var(--txt);padding:3px 0;flex:1;">${v}${alert?` <span class="bd bd-r">${alert}</span>`:''}</span>
+    </div>`;
+  }
+
+  document.getElementById('rpt-basic').innerHTML=
+    kv('보고 기간','<input type="text" placeholder="2026년   월" style="border:1px dashed #ccc;border-radius:4px;padding:2px 6px;font-size:11px;">')+
+    kv('보고자','조현 (리안헤어 광주·호남 지사장 / 이음컴퍼니)')+
+    kv('보고 수신','이승식 본부장 / 박성철 부장');
+
+  document.getElementById('rpt-stores').innerHTML=
+    kv('총 관리 매장',`${m.length}개 (광주 ${m.filter(s=>s.region==='광주').length}개 + 전북 ${m.filter(s=>s.region==='전북').length}개)`)+
+    kv('🔴 긴급 매장',red.map(s=>s.name+'('+s.owner+')').join(', ')||'없음',red.length?'즉시 조치':'')+
+    kv('🟡 주의 매장',yel.map(s=>s.name).join(', ')||'없음')+
+    kv('이탈 위험 신호','<input type="text" placeholder="직접 입력" style="border:1px dashed #ccc;border-radius:4px;padding:2px 6px;font-size:11px;width:100%;">');
+
+  document.getElementById('rpt-pipeline').innerHTML=
+    kv('연 목표','4개')+
+    kv('계약 완료',`${pDone.length}개 (${pDone.map(p=>p.name).join(', ')||'없음'})`)+
+    kv('상담 진행중',pipelineData.filter(p=>p.status==='상담 진행중').map(p=>p.name).join(', ')||'없음')+
+    kv('이번 달 접촉','<input type="text" placeholder="  건 (방문  / 전화  / 소개  )" style="border:1px dashed #ccc;border-radius:4px;padding:2px 6px;font-size:11px;width:180px;">');
+
+  document.getElementById('rpt-actions').innerHTML=
+    kv('처리 완료',`${done.length}건`)+
+    kv('진행중',`${actions.filter(a=>a.status==='🔄 진행중').length}건`)+
+    kv('기한 초과',over.length+'건',over.length?'주의':'')+
+    kv('본사 답변 대기',pend.length+'건')+
+    kv('상담 기록',`총 ${consults.length}건`);
+
+  document.getElementById('rpt-issues').innerHTML=
+    [...red,...yel].map(s=>kv(s.grade+' '+s.name,s.issue||'—')).join('')||kv('집중 관리 매장','없음');
+}
+
+// ════════════════════════════════════════════════
+// BACKUP / RESTORE
+// ════════════════════════════════════════════════
+function exportJSON(){
+  const data={actions,consults,exportedAt:new Date().toISOString()};
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(data,null,2));
+  a.download=`리안헤어_호남지사_백업_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  lsSet('jisa_lastBackup',new Date().toLocaleDateString('ko-KR'));
+  document.getElementById('backup-status').textContent='마지막 백업: '+new Date().toLocaleDateString('ko-KR');
+  toast('📤 JSON 백업 완료!');
+}
+
+function importJSON(evt){
+  const file=evt.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(data.actions){actions=data.actions;lsSet('jisa_actions',actions);}
+      if(data.consults){consults=data.consults;lsSet('jisa_consults',consults);}
+      renderAll();
+      toast('📥 백업 불러오기 완료!');
+    }catch{alert('파일 형식이 올바르지 않습니다.');}
+  };
+  r.readAsText(file);
+  evt.target.value='';
+}
+
+function downloadCSV(){
+  let csv='\uFEFF지역,브랜드,매장명,원장명,매장전화,원장휴대폰,주소,계약상태,CRM,현재이슈,노무리스크,이슈등급\n';
+  managed.forEach(s=>{csv+=[s.region,s.brand,s.name,s.owner,s.phone,s.mobile,`"${s.addr||''}"`,s.status,s.crm||'',`"${s.issue||''}"`,`"${s.risk||''}"`,s.grade].join(',')+'\r\n';});
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='리안헤어_호남지사_가맹점리스트.csv';
+  a.click();
+  toast('📊 CSV 다운로드 완료!');
+}
+
+// ════════════════════════════════════════════════
+// MODAL / NAV / MISC
+// ════════════════════════════════════════════════
+function closeModal(id){document.getElementById(id).classList.remove('on');}
+document.querySelectorAll('.modal-bg').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('on');});
+});
+
+function go(id){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.getElementById('sec-'+id).classList.add('on');
+  document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('on'));
+  const idx=['today','stores','consult','actions','pipeline','calendar','report','settings'].indexOf(id);
+  document.querySelectorAll('.nbtn')[idx]?.classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='stores'){renderStoreKPI();renderStores();}
+  if(id==='report')renderReport();
+}
+
+function openFAB(){
+  // 빠른 상담기록 등록
+  openConsultModal();
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.opacity='1';
+  setTimeout(()=>t.style.opacity='0',2800);
+}
+
+// ════════════════════════════════════════════════
+// CONSULT STORE FILTER POPULATE
+// ════════════════════════════════════════════════
+function populateConsultFilter(){
+  const sel=document.getElementById('c-filter-store');
+  sel.innerHTML='<option value="">전체 매장</option>'+
+    storeData.filter(s=>s.scope!=='제외').map(s=>`<option>${s.name}</option>`).join('');
+}
+
+// ════════════════════════════════════════════════
+// RENDER ALL
+// ════════════════════════════════════════════════
+function renderAll(){
+  renderToday();
+  renderStoreKPI();
+  renderStores();
+  renderConsults();
+  renderActions();
+  renderPipeline();
+  renderCalendar();
+}
+
+// INIT
+document.getElementById('today-label').textContent=
+  new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+populateConsultFilter();
+renderAll();
+indicatorSaved();
+</script>
+</body>
+</html>
