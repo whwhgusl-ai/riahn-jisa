@@ -184,6 +184,7 @@ textarea{resize:vertical;min-height:60px;}
     지사장 <b>조현</b> / 이음컴퍼니<br>
     <span id="today-label"></span>
     <div class="save-indicator" id="save-indicator"></div>
+    <div id="gas-indicator" style="font-size:10px;color:#6fc98a;margin-top:1px;">⏳ 시트 연결 중...</div>
   </div>
 </div>
 
@@ -198,6 +199,9 @@ textarea{resize:vertical;min-height:60px;}
   <button class="nbtn"     onclick="go('report')">📋 보고서</button>
   <button class="nbtn"     onclick="go('settings')">⚙️ 설정·백업</button>
 </nav>
+
+
+<div id="loading-bar" style="display:none;position:fixed;top:0;left:0;right:0;background:var(--gold);color:var(--g1);text-align:center;padding:6px;font-size:12px;font-weight:700;z-index:999;">불러오는 중...</div>
 
 <!-- ═══════════════════════════════════════════════
      오늘 — 첫 화면
@@ -840,6 +844,7 @@ function openStoreModal(idx){
       <a href="https://map.naver.com/search?query=${encodeURIComponent(s.addr)}" target="_blank" class="btn btn-b btn-sm">🗺️ 지도 열기</a>
       <button class="btn btn-gold btn-sm" onclick="closeModal('modal-store');openConsultModal('${s.name}')">📓 상담 등록</button>
       <button class="btn btn-grey btn-sm" onclick="closeModal('modal-store');openActionModal('','${s.name}')">✅ 업무 등록</button>
+      <button class="btn btn-sm" style="background:#eee;color:#555;" onclick="updateLastContact(${storeData.indexOf(s)})">📅 연락 기록</button>
     </div>
   `;
   document.getElementById('modal-store').classList.add('on');
@@ -886,52 +891,54 @@ function openConsultModal(storeName=''){
   document.getElementById('modal-consult').classList.add('on');
 }
 
-function saveConsult(){
+async function saveConsult(){
   const store=document.getElementById('c-store').value;
   const content=document.getElementById('c-content').value.trim();
   if(!store||!content){alert('매장과 내용은 필수입니다.');return;}
   const storeObj=storeData.find(s=>s.name===store)||{};
   const next=document.getElementById('c-next').value.trim();
   const deadline=document.getElementById('c-deadline').value;
-  const hq=document.getElementById('c-hq').value;
-  const newC={
-    id:'c'+Date.now(),store,owner:storeObj.owner||'',
+  const payload = {
+    store, owner:storeObj.owner||'',
     date:document.getElementById('c-date').value,
     method:document.getElementById('c-method').value,
     type:document.getElementById('c-type').value,
-    content,request:document.getElementById('c-request').value,
-    next,deadline,hq
+    content, request:document.getElementById('c-request').value,
+    next, deadline, hq:document.getElementById('c-hq').value
   };
-  consults.unshift(newC);
-  lsSet('jisa_consults',consults);
-
-  // 업무 자동생성
-  if(next){
-    const newA={
-      id:'a'+Date.now(),
-      date:new Date().toISOString().split('T')[0],
-      type:'원장요청',store,
-      content:`[상담 자동생성] ${next}`,
-      who:'지사장',deadline,
-      status:'📋 예정',result:'',priority:'중'
-    };
-    actions.unshift(newA);
-    lsSet('jisa_actions',actions);
-    toast(`✅ 상담 저장 + 업무 자동생성: "${next.slice(0,20)}"`);
-  } else { toast('✅ 상담 기록 저장 완료'); }
-
   closeModal('modal-consult');
-  renderConsults();
-  renderActions();
-  renderToday();
+  showLoading('상담 기록 저장 중...');
+  try {
+    if (GAS_ENABLED) {
+      await gasCall('addConsult', payload);
+      toast(next ? `✅ 상담 저장 + 업무 자동생성 완료` : '✅ 상담 기록 저장 완료');
+    } else {
+      // 오프라인 폴백
+      const newC={id:'c'+Date.now(),...payload};
+      consults.unshift(newC);
+      lsSet('jisa_consults',consults);
+      if(next){actions.unshift({id:'a'+Date.now(),date:new Date().toISOString().split('T')[0],type:'원장요청',store,content:'[상담 자동생성] '+next,who:'지사장',deadline,status:'📋 예정',result:'',priority:'중'});lsSet('jisa_actions',actions);}
+      toast('✅ 로컬 저장 완료 (오프라인)');
+    }
+  } catch(e) { toast('❌ 저장 실패: ' + e.message); }
+  finally { hideLoading(); }
+  await renderAll();
 }
 
-function deleteConsult(id){
+async function deleteConsult(id){
   if(!confirm('이 상담 기록을 삭제할까요?'))return;
-  consults=consults.filter(c=>c.id!==id);
-  lsSet('jisa_consults',consults);
-  renderConsults();
-  toast('삭제 완료');
+  showLoading('삭제 중...');
+  try {
+    if (GAS_ENABLED) {
+      await gasCall('deleteConsult', { id });
+    } else {
+      consults=consults.filter(c=>c.id!==id);
+      lsSet('jisa_consults',consults);
+    }
+    toast('🗑️ 삭제 완료');
+  } catch(e) { toast('❌ 삭제 실패: ' + e.message); }
+  finally { hideLoading(); }
+  await renderAll();
 }
 
 // ════════════════════════════════════════════════
@@ -1024,13 +1031,12 @@ function openActionModal(id='',storePrefill=''){
 
 function openActionEdit(id){ openActionModal(id); }
 
-function saveAction(){
+async function saveAction(){
   const id=document.getElementById('ma-id').value;
   const content=document.getElementById('ma-content').value.trim();
   const store=document.getElementById('ma-store').value.trim();
   if(!content||!store){alert('대상과 내용은 필수입니다.');return;}
-  const obj={
-    id:id||('a'+Date.now()),
+  const payload={
     type:document.getElementById('ma-type').value,
     store,content,
     date:document.getElementById('ma-date').value,
@@ -1040,22 +1046,46 @@ function saveAction(){
     result:document.getElementById('ma-result').value,
     priority:document.getElementById('ma-priority').value,
   };
-  if(id){actions=actions.map(a=>a.id===id?obj:a);}
-  else{actions.unshift(obj);}
-  lsSet('jisa_actions',actions);
   closeModal('modal-action');
-  renderActions();
-  renderToday();
-  toast(id?'✅ 수정 완료':'✅ 업무 등록 완료');
+  showLoading(id?'업무 수정 중...':'업무 등록 중...');
+  try {
+    if (GAS_ENABLED) {
+      if (id) {
+        const row = actions.find(a=>a.id===id)?._row;
+        await gasCall('updateAction', { id, fields: {
+          '구분':payload.type,'대상매장':payload.store,'내용':payload.content,
+          '처리담당':payload.who,'기한':payload.deadline,'상태':payload.status,
+          '처리결과':payload.result,'중요도':payload.priority
+        }});
+      } else {
+        await gasCall('addAction', payload);
+      }
+      toast(id?'✅ 수정 완료':'✅ 업무 등록 완료');
+    } else {
+      const obj={id:id||('a'+Date.now()),...payload};
+      if(id){actions=actions.map(a=>a.id===id?obj:a);}else{actions.unshift(obj);}
+      lsSet('jisa_actions',actions);
+      toast(id?'✅ 수정 완료 (로컬)':'✅ 등록 완료 (로컬)');
+    }
+  } catch(e) { toast('❌ 저장 실패: ' + e.message); }
+  finally { hideLoading(); }
+  await renderAll();
 }
 
-function deleteAction(id){
+async function deleteAction(id){
   if(!confirm('이 업무를 삭제할까요?'))return;
-  actions=actions.filter(a=>a.id!==id);
-  lsSet('jisa_actions',actions);
-  renderActions();
-  renderToday();
-  toast('삭제 완료');
+  showLoading('삭제 중...');
+  try {
+    if (GAS_ENABLED) {
+      await gasCall('deleteAction', { id });
+    } else {
+      actions=actions.filter(a=>a.id!==id);
+      lsSet('jisa_actions',actions);
+    }
+    toast('🗑️ 삭제 완료');
+  } catch(e) { toast('❌ 삭제 실패: ' + e.message); }
+  finally { hideLoading(); }
+  await renderAll();
 }
 
 // ════════════════════════════════════════════════
@@ -1249,14 +1279,141 @@ function populateConsultFilter(){
 // ════════════════════════════════════════════════
 // RENDER ALL
 // ════════════════════════════════════════════════
-function renderAll(){
-  renderToday();
-  renderStoreKPI();
-  renderStores();
-  renderConsults();
-  renderActions();
-  renderPipeline();
-  renderCalendar();
+async function renderAll(){
+  if (!GAS_ENABLED) {
+    // localStorage 모드 (오프라인 폴백)
+    renderToday(); renderStoreKPI(); renderStores();
+    renderConsults(); renderActions(); renderPipeline(); renderCalendar();
+    return;
+  }
+  showLoading('구글 시트에서 데이터 불러오는 중...');
+  try {
+    // 병렬로 모든 데이터 한 번에 가져오기
+    const [storesRes, actionsRes, consultsRes, pipeRes, calRes] = await Promise.all([
+      gasCall('getStores'),
+      gasCall('getActions', {}),
+      gasCall('getConsults', {}),
+      gasCall('getPipeline'),
+      gasCall('getCalendar'),
+    ]);
+
+    // 구글 시트 데이터를 앱 형식으로 변환
+    if (storesRes.data) {
+      // 가맹점 데이터 → storeData 형식으로 매핑
+      storesRes.data.forEach(s => {
+        const idx = storeData.findIndex(d => d.name === s['매장명']);
+        if (idx >= 0) {
+          storeData[idx].lastContact = s['마지막연락'] || storeData[idx].lastContact;
+          storeData[idx].nextContact = s['다음연락']  || storeData[idx].nextContact;
+          storeData[idx].issue       = s['현재이슈']  || storeData[idx].issue;
+          storeData[idx].risk        = s['노무리스크'] || storeData[idx].risk;
+          storeData[idx].grade       = s['이슈등급']  || storeData[idx].grade;
+          storeData[idx]._row        = s['_row'];
+        }
+      });
+    }
+
+    if (actionsRes.data) {
+      // 구글 시트 업무 데이터로 교체
+      actions = actionsRes.data.map(a => ({
+        id:       a['업무ID'],
+        date:     a['접수일'],
+        type:     a['구분'],
+        store:    a['대상매장'],
+        content:  a['내용'],
+        who:      a['처리담당'],
+        deadline: a['기한'],
+        status:   a['상태'],
+        result:   a['처리결과'],
+        priority: a['중요도'],
+        _row:     a['_row'],
+      }));
+    }
+
+    if (consultsRes.data) {
+      consults = consultsRes.data.map(c => ({
+        id:       c['상담ID'],
+        store:    c['매장명'],
+        owner:    c['원장명'],
+        date:     c['상담일'],
+        method:   c['방식'],
+        type:     c['분류'],
+        content:  c['핵심내용'],
+        request:  c['원장요청'],
+        next:     c['다음행동'],
+        deadline: c['처리기한'],
+        hq:       c['본사전달여부'],
+        _row:     c['_row'],
+      }));
+    }
+
+    if (pipeRes.data) {
+      pipelineData.length = 0;
+      pipeRes.data.forEach(p => pipelineData.push({
+        id:          p['파이프라인ID'],
+        name:        p['매장명'],
+        region:      p['지역'],
+        owner:       p['원장명'],
+        status:      p['상태'],
+        lastContact: p['마지막접촉'],
+        next:        p['다음액션'],
+        note:        p['비고'],
+        _row:        p['_row'],
+      }));
+    }
+
+    if (calRes.data) {
+      calData.length = 0;
+      calRes.data.forEach(e => calData.push({
+        date:       e['날짜'],
+        type:       e['구분'],
+        title:      e['제목'],
+        teacher:    e['강사주관'],
+        place:      e['장소'],
+        fee:        e['비용'],
+        status:     e['상태'],
+        dateStatus: e['날짜확정여부'] === '미확정' ? '날짜미확정' : '',
+        note:       e['비고'],
+      }));
+    }
+
+    // 로컬 저장소 동기화 (오프라인 폴백용)
+    lsSet('jisa_actions',  actions);
+    lsSet('jisa_consults', consults);
+    toast('✅ 구글 시트 동기화 완료');
+    const gi=document.getElementById('gas-indicator'); if(gi) gi.textContent='🟢 구글 시트 연결됨';
+
+  } catch(e) {
+    console.error('renderAll GAS 오류:', e);
+    toast('⚠️ 오프라인 모드로 전환 (로컬 데이터 사용)');
+    const gi2=document.getElementById('gas-indicator'); if(gi2) { gi2.textContent='🔴 오프라인 모드'; gi2.style.color='#ff8080'; }
+    GAS_ENABLED = false;
+  } finally {
+    hideLoading();
+  }
+
+  renderToday(); renderStoreKPI(); renderStores();
+  renderConsults(); renderActions(); renderPipeline(); renderCalendar();
+}
+
+
+async function updateLastContact(idx) {
+  const s = storeData[idx];
+  if (!s || !s._row) { toast('매장 행 정보 없음'); return; }
+  const today = new Date().toISOString().split('T')[0];
+  closeModal('modal-store');
+  showLoading('연락 기록 중...');
+  try {
+    if (GAS_ENABLED) {
+      await gasCall('updateStore', { row: s._row, fields: { '마지막연락': today } });
+      toast(`✅ ${s.name} 마지막 연락일 → ${today}`);
+    } else {
+      s.lastContact = today;
+      toast(`✅ ${s.name} 연락 기록 (로컬)`);
+    }
+  } catch(e) { toast('❌ 오류: ' + e.message); }
+  finally { hideLoading(); }
+  await renderAll();
 }
 
 // INIT
