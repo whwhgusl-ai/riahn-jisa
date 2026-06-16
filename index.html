@@ -1301,7 +1301,10 @@ function go(id){
   const idx=['today','stores','consult','actions','pipeline','calendar','report','settings'].indexOf(id);
   document.querySelectorAll('.nbtn')[idx]?.classList.add('on');
   window.scrollTo({top:0,behavior:'smooth'});
-  if(id==='stores'){renderStoreKPI();renderStores();}
+  if(id==='stores'){
+    // GAS에서 최신 데이터를 다시 불러온 후 렌더링
+    renderAll();
+  }
   if(id==='report')renderReport();
 }
 
@@ -1364,7 +1367,11 @@ async function renderAll(){
           storeData[idx].nextContact = s['다음연락']  || '';
           storeData[idx].issue       = s['현재이슈']  || '';
           storeData[idx].risk        = s['노무리스크'] || '';
-          storeData[idx].grade       = s['이슈등급']  || '🟢';
+          // 이모지 정규화 (구글 시트에서 깨질 수 있음)
+          const rawGrade = s['이슈등급'] || '🟢';
+          storeData[idx].grade = rawGrade.includes('🔴') || rawGrade.includes('red') ? '🔴'
+                               : rawGrade.includes('🟡') || rawGrade.includes('yel') ? '🟡'
+                               : '🟢';
           storeData[idx].scope       = s['관리범위']  || '관리';
           storeData[idx]._row        = s['_row'];
         }
@@ -1438,6 +1445,8 @@ async function renderAll(){
     // 로컬 저장소 동기화 (오프라인 폴백용)
     lsSet('jisa_actions',  actions);
     lsSet('jisa_consults', consults);
+    // 상담기록 매장 드롭다운 업데이트 (storeData 채워진 후)
+    populateConsultFilter();
     toast('✅ 구글 시트 동기화 완료');
     const gi=document.getElementById('gas-indicator'); if(gi) gi.textContent='🟢 구글 시트 연결됨';
 
