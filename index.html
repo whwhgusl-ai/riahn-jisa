@@ -1352,11 +1352,20 @@ async function renderAll(){
       storesRes.data.forEach(s => {
         const idx = storeData.findIndex(d => d.name === s['매장명']);
         if (idx >= 0) {
-          storeData[idx].lastContact = s['마지막연락'] || storeData[idx].lastContact;
-          storeData[idx].nextContact = s['다음연락']  || storeData[idx].nextContact;
-          storeData[idx].issue       = s['현재이슈']  || storeData[idx].issue;
-          storeData[idx].risk        = s['노무리스크'] || storeData[idx].risk;
-          storeData[idx].grade       = s['이슈등급']  || storeData[idx].grade;
+          // 구글 시트의 모든 컬럼을 storeData에 반영
+          storeData[idx].owner       = s['원장명']    || '';
+          storeData[idx].phone       = s['매장전화']  || '';
+          storeData[idx].mobile      = s['원장휴대폰']|| '';
+          storeData[idx].addr        = s['주소']      || '';
+          storeData[idx].joined      = s['합류일']    || '';
+          storeData[idx].crm         = s['CRM']       || '';
+          storeData[idx].status      = s['계약상태']  || '활성';
+          storeData[idx].lastContact = s['마지막연락']|| '';
+          storeData[idx].nextContact = s['다음연락']  || '';
+          storeData[idx].issue       = s['현재이슈']  || '';
+          storeData[idx].risk        = s['노무리스크'] || '';
+          storeData[idx].grade       = s['이슈등급']  || '🟢';
+          storeData[idx].scope       = s['관리범위']  || '관리';
           storeData[idx]._row        = s['_row'];
         }
       });
